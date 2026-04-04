@@ -1,0 +1,27 @@
+{
+  "name": "album-mundial",
+  "version": "1.0.0",
+  "description": "Aplicacion digital de album de stickers del Mundial 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "node server.js",
+    "client": "vite",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "country-state-city": "^3.2.1",
+    "express": "^5.2.1",
+    "firebase": "^12.11.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.2.1",
+    "vite": "^5.4.19"
+  }
+}

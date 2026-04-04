@@ -1,0 +1,29 @@
+{
+  "Colombia": {
+    "Antioquia": ["Medellín", "Aburrá", "Bello", "Itagüí", "Envigado", "Sabaneta", "La Estrella", "Copacabana", "Girardota", "Barbosa", "Otun", "Caldas", "Rionegro", "El Retiro", "Guarne", "Carmen de Viboral", "Marinilla", "San Vicente", "Segovia", "Amalfi", "Anorí", "Ituango", "Yarumal", "Santo Domingo", "Yalí"],
+    "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Puerto Colombia", "Galapa", "Luruaco", "Repelón", "Usiacurí", "Piojó", "Suan", "Polonuevo", "Ponedera", "Tubará", "Palmar de Varela"],
+    "Bogotá": ["Bogotá"],
+    "Bolívar": ["Cartagena", "Turbaco", "Magangué", "Arjona", "Clemencia", "Cicuco", "San Estanislao", "El Guamo", "San Juan Nepomuceno", "Santa Catalina", "Talaigua Nuevo", "Villanueva", "Mahates"],
+    "Boyacá": ["Tunja", "Duitama", "Sogamoso", "Paipa", "Tipacoque", "Labranzagrande", "Zetaquira", "Oicatá", "Gachantivá", "Socotá", "Mongui", "Villa de Leiva", "Sutamarchán", "Chiquinquirá"],
+    "Caldas": ["Manizales", "Villamaría", "Neira", "Aguadas", "Aranzazu", "Pácora", "Marmato", "Supia", "Marquetalia", "Samaná", "La Merced", "Viterbo", "Anserma"],
+    "Caquetá": ["Florencia", "San Vicente del Caguan", "Solano", "Puerto Rico", "Morelia", "La Montañita", "Valparaiso"],
+    "Cauca": ["Popayán", "Santander de Quilichao", "Patía", "Timbío", "Piendamó", "Guachené", "Caldono", "Inzá", "Páez", "Totoró", "Silvia", "Morales", "López"],
+    "Cesar": ["Valledupar", "Codazzi", "Aguachica", "La Paz", "El Paso", "Gamarra", "González", "Morroa", "Pailitas"],
+    "Córdoba": ["Montería", "Planeta Rica", "Cereté", "Lorica", "Puerto Escondido", "San Carlos", "Sahagún", "Tierralta", "Buenavista"],
+    "Cundinamarca": ["Zipaquirá", "Fusagasugá", "Ubaté", "Facatativá", "Gachancipá", "Sibaté", "Soacha", "Chía", "Tabio", "Tenjo", "Suesca", "Pacho"],
+    "Guaviare": ["San José del Guaviare", "Miraflores", "El Retorno", "Calamar"],
+    "Huila": ["Neiva", "Pitalito", "Garzón", "Campoalegre", "Aipe", "Tello", "La Plata", "Acevedo"],
+    "La Guajira": ["Riohacha", "Maicao", "Uribia", "Manaure", "Fonseca", "Distracción", "Villanueva"],
+    "Magdalena": ["Santa Marta", "Ciénaga", "Aracataca", "Fundación", "El Banco", "Plato", "Remolino"],
+    "Meta": ["Villavicencio", "Acacías", "Granada", "Castilla la Nueva", "San Martín", "San Juan de Arama", "Puerto López"],
+    "Nariño": ["Pasto", "Ipiales", "Túquerres", "Tumaco", "Pupiales", "Samaniego", "Consacá", "Funes", "Guachucal", "La Llanada", "Leiva", "Linares", "Los Andes"],
+    "Norte de Santander": ["Cúcuta", "Ocaña", "Pamplona", "Chinácota", "Ragonvalia", "El Zulia", "Salazar", "Arboledas", "San Calixto"],
+    "Quindío": ["Armenia", "Calarcá", "Cordobá", "Filandia", "Genova", "La Tebaida", "Pijao", "Montenegro", "Salento"],
+    "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal", "La Virginia", "Marsella", "Mistrato", "Santuario"],
+    "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Lebrija", "Barrancabermeja", "San Gil", "Socorro", "Vélez", "Málaga"],
+    "Sucre": ["Sincelejo", "Corozal", "Los Palmitos", "Sampués", "Coveñas", "Tolú", "Betania", "El Roble"],
+    "Tolima": ["Ibagué", "Espinal", "Purificación", "Chaparral", "Guamo", "Armero Guayabal", "Melgar", "Mariquita", "Honda", "Saldaña"],
+    "Valle del Cauca": ["Cali", "Yumbo", "Palmira", "Buenaventura", "Tuluá", "Buga", "Cartago", "Roldanillo", "La Cumbre", "Ginebra", "Trujillo", "Versalles"],
+    "Vichada": ["Puerto Carreño", "La Primavera", "Santa Rosalía", "Cumaribo"]
+  }
+}

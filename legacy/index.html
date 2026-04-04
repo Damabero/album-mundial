@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Album Mundial 2026 - Legacy</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="navbar">
+  <div class="navbar-marca">
+    <button class="btn-marca" onclick="mostrarTab('inicio')">Inicio</button>
+  </div>
+  <div class="navbar-main-tabs">
+    <button onclick="mostrarTab('album')">Album</button>
+    <button onclick="mostrarTab('progreso')">Progreso</button>
+    <button onclick="mostrarTab('intercambios')">Intercambios</button>
+    <button onclick="mostrarTab('chat')">Chat</button>
+  </div>
+
+  <div id="navbar-auth-tabs" class="navbar-auth-tabs">
+    <button onclick="mostrarTab('login-form')" class="auth-tab">Iniciar Sesion</button>
+    <button onclick="mostrarTab('registro-form')" class="auth-tab">Registrarse</button>
+  </div>
+
+  <div id="navbar-user-menu" class="navbar-user-menu" style="display: none;">
+    <button class="user-button" onclick="toggleUserMenu()">
+      <span id="username-display">Usuario</span>
+    </button>
+    <div id="user-dropdown" class="user-dropdown">
+      <a href="javascript:void(0)" onclick="mostrarTab('cuenta')">Informacion de Cuenta</a>
+      <a href="javascript:void(0)" onclick="logout()">Cerrar Sesion</a>
+    </div>
+  </div>
+</div>
+
+<div id="inicio" class="tab inicio-container">
+  <div class="inicio-hero">
+    <h1 class="inicio-titulo">Completa tu album del <span class="titulo-destaque">Mundial</span></h1>
+    <p class="inicio-subtitulo">
+      La ilusion de llenar el album<br><br>
+      Descubrir cada sobre, encontrar la lamina que te falta y disfrutar cada momento en compania es lo que hace especial la experiencia del Mundial.<br><br>
+      Comparte con conocidos o desconocidos el reto de completar el album y vive la emocion de completar cada pagina.
+    </p>
+
+    <div class="inicio-botones">
+      <button onclick="mostrarTab('login-form')" class="btn-inicio btn-login">Iniciar Sesion</button>
+      <button onclick="mostrarTab('registro-form')" class="btn-inicio btn-registro">Registrarse</button>
+    </div>
+  </div>
+
+  <div class="inicio-stats">
+    <div class="stat-card">
+      <div class="stat-numero" id="stat-usuarios">-</div>
+      <div class="stat-label">Usuarios Activos</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-numero" id="stat-intercambios">-</div>
+      <div class="stat-label">Intercambios Realizados</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-numero">728</div>
+      <div class="stat-label">Laminas Coleccionables</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-numero" id="stat-paises">-</div>
+      <div class="stat-label">Paises Representados</div>
+    </div>
+  </div>
+</div>
+
+<div id="login-form" class="tab auth-container">
+  <h2>Iniciar Sesion</h2>
+  <div class="auth-form">
+    <input id="email-login" type="email" placeholder="Correo electronico"><br>
+    <input id="password-login" type="password" placeholder="Contrasena"><br>
+    <button onclick="login()" class="btn-primary">Iniciar Sesion</button>
+    <div class="auth-links">
+      <a href="javascript:void(0)" onclick="mostrarTab('registro-form')">Crear una cuenta</a>
+    </div>
+  </div>
+</div>
+
+<div id="registro-form" class="tab auth-container">
+  <h2>Registrarse</h2>
+  <div class="auth-form">
+    <input id="usuario-register" type="text" placeholder="Nombre de usuario"><br>
+    <input id="email-register" type="email" placeholder="Correo electronico"><br>
+    <input id="password-register" type="password" placeholder="Contrasena"><br>
+
+    <label>Pais</label>
+    <select id="pais" onchange="actualizarDepartamentos()">
+      <option value="">Selecciona pais</option>
+    </select><br>
+
+    <label>Provincia/Departamento</label>
+    <select id="departamento" onchange="actualizarCiudades()">
+      <option value="">Selecciona provincia/departamento</option>
+    </select><br>
+
+    <label>Ciudad</label>
+    <select id="ciudad">
+      <option value="">Selecciona ciudad</option>
+    </select><br>
+
+    <button onclick="registro()" class="btn-primary">Registrarse</button>
+
+    <div class="auth-links">
+      <a href="javascript:void(0)" onclick="mostrarTab('login-form')">Ya tienes cuenta? Inicia sesion</a>
+    </div>
+  </div>
+</div>
+
+<div id="cuenta" class="tab auth-container">
+  <h2>Informacion de Cuenta</h2>
+  <div class="auth-form">
+    <label>Nombre de Usuario</label>
+    <input id="cuenta-usuario" type="text" readonly><br>
+
+    <label>Correo Electronico</label>
+    <input id="cuenta-email" type="email" readonly><br>
+
+    <label>Pais</label>
+    <select id="cuenta-pais" onchange="actualizarDepartamentosEdicion()">
+      <option value="">Selecciona pais</option>
+    </select><br>
+
+    <label>Provincia/Departamento</label>
+    <select id="cuenta-departamento" onchange="actualizarCiudadesEdicion()">
+      <option value="">Selecciona provincia/departamento</option>
+    </select><br>
+
+    <label>Ciudad</label>
+    <select id="cuenta-ciudad">
+      <option value="">Selecciona ciudad</option>
+    </select><br>
+
+    <button onclick="guardarCambiosCuenta()" class="btn-primary">Guardar Cambios</button>
+  </div>
+</div>
+
+<div id="album" class="tab">
+  <h2>Album</h2>
+
+  <div class="controls-top">
+    <button onclick="limpiarTodo()" class="btn-control btn-limpiar">Limpiar Todo</button>
+    <button onclick="completarTodo()" class="btn-control btn-completar">Completar Todo</button>
+  </div>
+
+  <div class="team-nav">
+    <button onclick="equipoAnterior()" class="btn-nav">Anterior</button>
+    <div class="equipo-selector">
+      <h3 id="nombreEquipo" style="margin: 0 0 10px 0;">Selecciona un Equipo</h3>
+      <select id="selectEquipo" onchange="cambiarEquipo(this.value)" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; width: 200px;">
+        <option value="">-- Selecciona --</option>
+      </select>
+    </div>
+    <button onclick="equipoSiguiente()" class="btn-nav">Siguiente</button>
+  </div>
+
+  <div class="filtros-album">
+    <div class="filtro-item">
+      <label for="search-numero">Buscar:</label>
+      <input id="search-numero" type="text" placeholder="Busca por numero o nombre..." onkeyup="aplicarFiltros()">
+    </div>
+
+    <div class="filtro-item">
+      <label for="filter-estado">Estado:</label>
+      <select id="filter-estado" onchange="aplicarFiltros()">
+        <option value="todos">Todos</option>
+        <option value="obtenidos">Obtenidos</option>
+        <option value="faltantes">Faltantes</option>
+        <option value="repetidos">Repetidos</option>
+      </select>
+    </div>
+
+    <div class="filtro-item">
+      <button onclick="limpiarFiltros()" class="btn-limpiar-filtros">Limpiar Filtros</button>
+    </div>
+  </div>
+
+  <div id="estampillas" class="estampillas-grid"></div>
+
+  <div class="controls-bot">
+    <button onclick="limpiarEquipoActual()" class="btn-control btn-limpiar">Limpiar Equipo</button>
+    <button onclick="completarEquipoActual()" class="btn-control btn-completar">Completar Equipo</button>
+  </div>
+</div>
+
+<div id="progreso" class="tab">
+  <h2>Mi Progreso</h2>
+  <div class="progreso-container">
+    <div class="progreso-stats">
+      <div class="stat-progress">
+        <div class="stat-label">Laminas Obtenidas</div>
+        <div class="stat-numero" id="total-obtenidas">0</div>
+      </div>
+
+      <div class="stat-progress">
+        <div class="stat-label">Laminas Faltantes</div>
+        <div class="stat-numero" id="total-faltantes">0</div>
+      </div>
+
+      <div class="stat-progress">
+        <div class="stat-label">Duplicadas</div>
+        <div class="stat-numero" id="total-duplicadas">0</div>
+      </div>
+    </div>
+
+    <div class="progreso-bar-section">
+      <div class="progreso-label">
+        <span>Coleccion Completada</span>
+        <span id="porcentaje-progreso">0%</span>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="intercambios" class="tab">
+  <h2>Intercambios</h2>
+  <div id="matches"></div>
+</div>
+
+<div id="chat" class="tab">
+  <div class="chat-container">
+    <div class="chat-list">
+      <div id="chatList"></div>
+    </div>
+
+    <div class="chat-main">
+      <div class="chat-header">
+        <div>
+          <h3 id="chatTitulo">Selecciona una conversacion</h3>
+        </div>
+      </div>
+
+      <div id="chatBox" class="chat-empty">
+        <span>Selecciona una conversacion para empezar</span>
+      </div>
+
+      <div class="chat-input">
+        <input id="mensaje" type="text" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensaje()">
+        <button onclick="enviarMensaje()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="../app.js"></script>
+
+</body>
+</html>
