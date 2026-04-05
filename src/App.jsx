@@ -6,6 +6,8 @@ function App() {
   const app = useAlbumApp();
   const [trophyMissing, setTrophyMissing] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [chatListOpen, setChatListOpen] = useState(false);
   const [theme, setTheme] = useState(() => {
     if (typeof window === "undefined") return "light";
     return window.localStorage.getItem("theme") || "light";
@@ -20,6 +22,10 @@ function App() {
     function handleDocumentClick(event) {
       if (!event.target.closest(".user-menu")) {
         setUserMenuOpen(false);
+      }
+
+      if (!event.target.closest(".topbar-panel") && !event.target.closest(".mobile-menu-toggle")) {
+        setMobileNavOpen(false);
       }
     }
 
@@ -453,7 +459,7 @@ function App() {
   function renderChat() {
     return (
       <section className="page-shell chat-shell">
-        <div className="chat-sidebar">
+        <div className={`chat-sidebar ${chatListOpen ? "is-open" : ""}`}>
           <div className="section-header compact">
             <div>
               <p className="eyebrow">Chat</p>
@@ -473,6 +479,7 @@ function App() {
                   onClick={() => {
                     app.setChatTarget(conversation.uid);
                     app.setChatName(conversation.nombre);
+                    setChatListOpen(false);
                   }}
                 >
                   <span>{conversation.nombre.slice(0, 1).toUpperCase()}</span>
@@ -495,6 +502,13 @@ function App() {
               <p className="eyebrow">Conversacion</p>
               <h2>{app.chatName || "Selecciona un chat"}</h2>
             </div>
+            <button
+              className="ghost-button chat-mobile-toggle"
+              onClick={() => setChatListOpen((prev) => !prev)}
+              type="button"
+            >
+              {chatListOpen ? "Ocultar chats" : "Ver chats"}
+            </button>
           </div>
 
           <div className="chat-messages">
@@ -564,70 +578,82 @@ function App() {
           Album Mundial
         </button>
 
-        <nav className="main-nav">
-          <button onClick={() => app.setCurrentTab("album")}>Album</button>
-          <button onClick={() => app.setCurrentTab("progreso")}>Progreso</button>
-          <button onClick={() => app.setCurrentTab("intercambios")}>Intercambios</button>
-          <button onClick={() => app.setCurrentTab("chat")}>Chat</button>
-        </nav>
+        <button
+          className="ghost-button mobile-menu-toggle"
+          type="button"
+          onClick={() => setMobileNavOpen((prev) => !prev)}
+        >
+          {mobileNavOpen ? "Cerrar" : "Menu"}
+        </button>
 
-        <div className="user-actions">
-          {app.authUser ? (
-            <div className="user-menu">
-              <button
-                className="ghost-button user-menu-trigger"
-                onClick={() => setUserMenuOpen((prev) => !prev)}
-              >
-                <span className="menu-trigger-icon">👤</span>
-                {app.displayName}
-                <span className="menu-trigger-caret">{userMenuOpen ? "▴" : "▾"}</span>
-              </button>
+        <div className={`topbar-panel ${mobileNavOpen ? "is-open" : ""}`}>
+          <nav className="main-nav">
+            <button onClick={() => { app.setCurrentTab("album"); setMobileNavOpen(false); }}>Album</button>
+            <button onClick={() => { app.setCurrentTab("progreso"); setMobileNavOpen(false); }}>Progreso</button>
+            <button onClick={() => { app.setCurrentTab("intercambios"); setMobileNavOpen(false); }}>Intercambios</button>
+            <button onClick={() => { app.setCurrentTab("chat"); setMobileNavOpen(false); }}>Chat</button>
+          </nav>
 
-              {userMenuOpen && (
-                <div className="user-menu-dropdown">
-                  <button
-                    className="user-menu-item"
-                    onClick={() => {
-                      app.setCurrentTab("cuenta");
-                      setUserMenuOpen(false);
-                    }}
-                  >
-                    <span className="user-menu-icon">⚙</span>
-                    Informacion de cuenta
-                  </button>
-                  <button
-                    className="user-menu-item"
-                    onClick={() => {
-                      setTheme((prev) => (prev === "light" ? "dark" : "light"));
-                      setUserMenuOpen(false);
-                    }}
-                  >
-                    <span className="user-menu-icon">{theme === "light" ? "🌙" : "☀"}</span>
-                    {theme === "light" ? "Modo oscuro" : "Modo claro"}
-                  </button>
-                  <button
-                    className="user-menu-item user-menu-danger"
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      app.handleLogout();
-                    }}
-                  >
-                    <span className="user-menu-icon">↩</span>
-                    Cerrar sesion
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <button className="ghost-button" onClick={() => app.setCurrentTab("login-form")}>
-                Iniciar sesion
-              </button>
-              <button className="primary-button" onClick={() => app.setCurrentTab("registro-form")}>
-                Registrarse
-              </button>
-            </>
-          )}
+          <div className="user-actions">
+            {app.authUser ? (
+              <div className="user-menu">
+                <button
+                  className="ghost-button user-menu-trigger"
+                  onClick={() => setUserMenuOpen((prev) => !prev)}
+                >
+                  <span className="menu-trigger-icon">👤</span>
+                  {app.displayName}
+                  <span className="menu-trigger-caret">{userMenuOpen ? "▴" : "▾"}</span>
+                </button>
+
+                {userMenuOpen && (
+                  <div className="user-menu-dropdown">
+                    <button
+                      className="user-menu-item"
+                      onClick={() => {
+                        app.setCurrentTab("cuenta");
+                        setUserMenuOpen(false);
+                        setMobileNavOpen(false);
+                      }}
+                    >
+                      <span className="user-menu-icon">⚙</span>
+                      Informacion de cuenta
+                    </button>
+                    <button
+                      className="user-menu-item"
+                      onClick={() => {
+                        setTheme((prev) => (prev === "light" ? "dark" : "light"));
+                        setUserMenuOpen(false);
+                      }}
+                    >
+                      <span className="user-menu-icon">{theme === "light" ? "🌙" : "☀"}</span>
+                      {theme === "light" ? "Modo oscuro" : "Modo claro"}
+                    </button>
+                    <button
+                      className="user-menu-item user-menu-danger"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        setMobileNavOpen(false);
+                        app.handleLogout();
+                      }}
+                    >
+                      <span className="user-menu-icon">↩</span>
+                      Cerrar sesion
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button className="ghost-button" onClick={() => { app.setCurrentTab("login-form"); setMobileNavOpen(false); }}>
+                  Iniciar sesion
+                </button>
+                <button className="primary-button" onClick={() => { app.setCurrentTab("registro-form"); setMobileNavOpen(false); }}>
+                  Registrarse
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 

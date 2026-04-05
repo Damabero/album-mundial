@@ -1,6 +1,6 @@
 {
   "name": "album-mundial",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Aplicacion digital de album de stickers del Mundial 2026",
   "main": "server.js",
   "scripts": {
