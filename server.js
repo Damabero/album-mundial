@@ -7,7 +7,7 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DIST_DIR = path.join(__dirname, "dist");
-const STATIC_DIR = fs.existsSync(DIST_DIR) ? DIST_DIR : __dirname;
+const HAS_DIST = fs.existsSync(DIST_DIR);
 
 app.use(cors());
 app.use(express.json());
@@ -85,19 +85,21 @@ app.get("/api/cities/:country/:state", (req, res) => {
   }
 });
 
-app.use(express.static(STATIC_DIR));
+if (HAS_DIST) {
+  app.use(express.static(DIST_DIR));
+}
 
 app.get("/{*rest}", (req, res, next) => {
   if (req.path.startsWith("/api/")) {
     return next();
   }
 
-  const indexPath = path.join(STATIC_DIR, "index.html");
-  if (fs.existsSync(indexPath)) {
+  const indexPath = path.join(DIST_DIR, "index.html");
+  if (HAS_DIST && fs.existsSync(indexPath)) {
     return res.sendFile(indexPath);
   }
 
-  return res.status(404).send("No se encontro la aplicacion frontend.");
+  return res.status(200).send("Album Mundial API online.");
 });
 
 app.listen(PORT, () => {
