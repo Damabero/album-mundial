@@ -592,16 +592,29 @@ button {
   align-items: center;
 }
 
-.team-strip > * {
-  flex: 1 1 180px;
+.team-strip > button {
+  flex: 0 0 auto;
+  min-width: 100px;
+  max-width: 140px;
+}
+
+.team-strip > select {
+  flex: 1 1 200px;
+  max-width: 320px;
 }
 
 .filters {
   margin-bottom: 24px;
 }
 
-.filters > * {
-  flex: 1 1 210px;
+.filters > input {
+  flex: 2 1 280px;
+  max-width: 100%;
+}
+
+.filters > select {
+  flex: 0 1 160px;
+  max-width: 180px;
 }
 
 .sticker-grid,
