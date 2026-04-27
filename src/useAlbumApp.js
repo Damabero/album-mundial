@@ -14,10 +14,19 @@ import {
   signOut
 } from "firebase/auth";
 import { auth, db } from "./firebase";
-import { EQUIPOS, createInitialStickerState, getAllCollectionStickers, getTeamStickers } from "./data";
+import { EQUIPOS, createInitialStickerState, getAllCollectionStickers, getTeamStickers, getTotalStickers } from "./data";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
-const TOTAL_LAMINAS = EQUIPOS.length * 20; // 48 equipos x 20 figuras = 960
+const TOTAL_LAMINAS = getTotalStickers();
+
+// Calcula el numero inicial de lamina para un equipo dado su indice
+function getTeamStartNumber(teamIndex) {
+  let startNumber = 1;
+  for (let i = 0; i < teamIndex; i++) {
+    startNumber += getTeamStickers(EQUIPOS[i].nombre).length;
+  }
+  return startNumber;
+}
 
 export function useAlbumApp() {
   const [currentTab, setCurrentTab] = useState("inicio");
@@ -89,11 +98,12 @@ export function useAlbumApp() {
 
   const filteredStickers = useMemo(() => {
     const search = filterText.trim().toLowerCase();
+    const teamStartNumber = getTeamStartNumber(currentTeamIndex);
     const baseItems = search
       ? getAllCollectionStickers()
       : currentTeam
         ? getTeamStickers(currentTeam.nombre).map((lamina, index) => ({
-            numero: currentTeamIndex * 20 + 1 + index,
+            numero: teamStartNumber + index,
             lamina,
             equipo: currentTeam.nombre,
             grupo: currentTeam.grupo
@@ -537,20 +547,22 @@ export function useAlbumApp() {
 
   function clearCurrentTeam() {
     if (!currentTeam || !window.confirm(`Quieres limpiar las laminas de ${currentTeam.nombre}?`)) return;
-    const initialNumber = currentTeamIndex * 20 + 1;
+    const teamStickers = getTeamStickers(currentTeam.nombre);
+    const initialNumber = getTeamStartNumber(currentTeamIndex);
     setStickerState((prev) => {
       const next = { ...prev };
-      for (let index = 0; index < 20; index += 1) next[initialNumber + index] = 0;
+      for (let index = 0; index < teamStickers.length; index += 1) next[initialNumber + index] = 0;
       return next;
     });
   }
 
   function fillCurrentTeam() {
     if (!currentTeam || !window.confirm(`Quieres completar las laminas de ${currentTeam.nombre}?`)) return;
-    const initialNumber = currentTeamIndex * 20 + 1;
+    const teamStickers = getTeamStickers(currentTeam.nombre);
+    const initialNumber = getTeamStartNumber(currentTeamIndex);
     setStickerState((prev) => {
       const next = { ...prev };
-      for (let index = 0; index < 20; index += 1) next[initialNumber + index] = 1;
+      for (let index = 0; index < teamStickers.length; index += 1) next[initialNumber + index] = 1;
       return next;
     });
   }

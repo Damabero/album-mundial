@@ -1,4 +1,5 @@
 export const EQUIPOS = [
+  { id: 0, nombre: "Láminas Especiales", grupo: "FWC", esEspecial: true },
   { id: 1, nombre: "Mexico", grupo: "A" },
   { id: 2, nombre: "Sudafrica", grupo: "A" },
   { id: 3, nombre: "Corea del Sur", grupo: "A" },
@@ -46,21 +47,47 @@ export const EQUIPOS = [
   { id: 45, nombre: "Inglaterra", grupo: "L" },
   { id: 46, nombre: "Croacia", grupo: "L" },
   { id: 47, nombre: "Ghana", grupo: "L" },
-  { id: 48, nombre: "Panama", grupo: "L" }
+  { id: 48, nombre: "Panama", grupo: "L" },
+  { id: 49, nombre: "FIFA World Cup History", grupo: "FWC", esEspecial: true }
 ];
 
-export function createInitialStickerState() {
-  const initialState = {};
-  const totalStickers = EQUIPOS.length * 20; // 48 equipos x 20 figuras = 960
+// Laminas especiales al inicio del album
+const LAMINAS_ESPECIALES_INICIO = [
+  "00 - Logo Panini",
+  "FWC 1 - Logo Mundial - Parte Superior",
+  "FWC 2 - Logo Mundial - Parte Inferior",
+  "FWC 3 - Official Mascots",
+  "FWC 4 - Official Slogan",
+  "FWC 5 - Official Ball",
+  "FWC 6 - Canadá - Host Country Emblem",
+  "FWC 7 - México - Host Country Emblem",
+  "FWC 8 - USA - Host Country Emblem"
+];
 
-  for (let index = 1; index <= totalStickers; index += 1) {
-    initialState[index] = 0;
-  }
-
-  return initialState;
-}
+// Laminas especiales de historia al final del album
+const LAMINAS_HISTORIA = [
+  "FWC 9 - Italia - Mundial Italia 1934",
+  "FWC 10 - Uruguay - Mundial Brasil 1950",
+  "FWC 11 - Alemania - Mundial Suiza 1954",
+  "FWC 12 - Brasil - Mundial Chile 1962",
+  "FWC 13 - Alemania - Mundial Alemania 1974",
+  "FWC 14 - Argentina - Mundial México 1986",
+  "FWC 15 - Brasil - Mundial USA 1994",
+  "FWC 16 - Brasil - Mundial Corea - Japón 2002",
+  "FWC 17 - Italia - Mundial Alemania 2006",
+  "FWC 18 - Alemania - Mundial Brasil 2014",
+  "FWC 19 - Argentina - Mundial Catar 2022"
+];
 
 export function getTeamStickers(teamName) {
+  if (teamName === "Láminas Especiales") {
+    return LAMINAS_ESPECIALES_INICIO;
+  }
+  
+  if (teamName === "FIFA World Cup History") {
+    return LAMINAS_HISTORIA;
+  }
+
   return [
     `Escudo ${teamName}`,
     "Equipo Completo",
@@ -85,15 +112,41 @@ export function getTeamStickers(teamName) {
   ];
 }
 
-export function getAllCollectionStickers() {
-  return EQUIPOS.flatMap((team, teamIndex) => {
-    const initialNumber = teamIndex * 20 + 1;
+// Calcula el total de laminas dinamicamente
+export function getTotalStickers() {
+  let total = 0;
+  for (const team of EQUIPOS) {
+    total += getTeamStickers(team.nombre).length;
+  }
+  return total;
+}
 
-    return getTeamStickers(team.nombre).map((lamina, stickerIndex) => ({
-      numero: initialNumber + stickerIndex,
-      lamina,
-      equipo: team.nombre,
-      grupo: team.grupo
-    }));
+export function createInitialStickerState() {
+  const initialState = {};
+  const totalStickers = getTotalStickers();
+
+  for (let index = 1; index <= totalStickers; index += 1) {
+    initialState[index] = 0;
+  }
+
+  return initialState;
+}
+
+export function getAllCollectionStickers() {
+  let currentNumber = 1;
+  
+  return EQUIPOS.flatMap((team) => {
+    const stickers = getTeamStickers(team.nombre);
+
+    return stickers.map((lamina) => {
+      const sticker = {
+        numero: currentNumber,
+        lamina,
+        equipo: team.nombre,
+        grupo: team.grupo
+      };
+      currentNumber++;
+      return sticker;
+    });
   });
 }
