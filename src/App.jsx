@@ -269,9 +269,9 @@ function App() {
             <p className="eyebrow">Coleccion</p>
             <h2>
               {app.isGlobalSearch
-                ? "Busqueda global de laminas"
+                ? "Busqueda global"
                 : app.currentTeam
-                  ? `${app.currentTeam.grupo}. ${app.currentTeam.nombre}`
+                  ? app.currentTeam.nombre
                   : "Album"}
             </h2>
           </div>
@@ -280,19 +280,20 @@ function App() {
           </div>
         </div>
 
-        <div className="toolbar">
-          <button className="danger-button" onClick={app.clearAll}>Limpiar todo</button>
-          <button className="success-button" onClick={app.fillAll}>Completar todo</button>
-        </div>
-
-        <div className="team-strip">
+        {/* Navegacion de equipos */}
+        <div className="team-navigation">
           <button
-            className="ghost-button"
+            className="nav-button"
             onClick={() => app.setCurrentTeamIndex((prev) => Math.max(0, prev - 1))}
+            disabled={app.currentTeamIndex === 0}
+            aria-label="Equipo anterior"
           >
-            Anterior
+            <span className="nav-icon">&larr;</span>
+            <span className="nav-text">Anterior</span>
           </button>
+          
           <select
+            className="team-select"
             value={app.currentTeamIndex}
             onChange={(event) => app.setCurrentTeamIndex(Number(event.target.value))}
           >
@@ -302,37 +303,49 @@ function App() {
               </option>
             ))}
           </select>
+          
           <button
-            className="ghost-button"
+            className="nav-button"
             onClick={() => app.setCurrentTeamIndex((prev) => Math.min(EQUIPOS.length - 1, prev + 1))}
+            disabled={app.currentTeamIndex === EQUIPOS.length - 1}
+            aria-label="Equipo siguiente"
           >
-            Siguiente
+            <span className="nav-text">Siguiente</span>
+            <span className="nav-icon">&rarr;</span>
           </button>
         </div>
 
-        <div className="filters">
-          <input
-            value={app.filterText}
-            onChange={(event) => app.setFilterText(event.target.value)}
-            placeholder="Busca por numero, jugador o equipo en toda la coleccion..."
-          />
-          <select value={app.filterStatus} onChange={(event) => app.setFilterStatus(event.target.value)}>
-            <option value="todos">Todos</option>
-            <option value="obtenidos">Obtenidos</option>
-            <option value="faltantes">Faltantes</option>
-            <option value="repetidos">Repetidos</option>
-          </select>
-          <button
-            className="ghost-button"
-            onClick={() => {
-              app.setFilterText("");
-              app.setFilterStatus("todos");
-            }}
-          >
-            Limpiar filtros
-          </button>
+        {/* Filtros de busqueda */}
+        <div className="search-filters">
+          <div className="search-input-wrapper">
+            <input
+              value={app.filterText}
+              onChange={(event) => app.setFilterText(event.target.value)}
+              placeholder="Buscar por numero, jugador o equipo..."
+            />
+          </div>
+          <div className="filter-controls">
+            <select value={app.filterStatus} onChange={(event) => app.setFilterStatus(event.target.value)}>
+              <option value="todos">Todos</option>
+              <option value="obtenidos">Obtenidos</option>
+              <option value="faltantes">Faltantes</option>
+              <option value="repetidos">Repetidos</option>
+            </select>
+            {(app.filterText || app.filterStatus !== "todos") && (
+              <button
+                className="clear-filters-button"
+                onClick={() => {
+                  app.setFilterText("");
+                  app.setFilterStatus("todos");
+                }}
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
 
+        {/* Grid de laminas */}
         <div className="sticker-grid">
           {app.filteredStickers.length === 0 ? (
             <div className="empty-state">No hay laminas que coincidan con los filtros.</div>
@@ -359,9 +372,18 @@ function App() {
           )}
         </div>
 
-        <div className="toolbar footer-toolbar">
-          <button className="danger-button" onClick={app.clearCurrentTeam}>Limpiar equipo</button>
-          <button className="success-button" onClick={app.fillCurrentTeam}>Completar equipo</button>
+        {/* Acciones de equipo */}
+        <div className="team-actions">
+          <div className="team-actions-group">
+            <span className="actions-label">Equipo actual:</span>
+            <button className="action-button danger" onClick={app.clearCurrentTeam}>Limpiar</button>
+            <button className="action-button success" onClick={app.fillCurrentTeam}>Completar</button>
+          </div>
+          <div className="team-actions-group">
+            <span className="actions-label">Todo el album:</span>
+            <button className="action-button danger" onClick={app.clearAll}>Limpiar todo</button>
+            <button className="action-button success" onClick={app.fillAll}>Completar todo</button>
+          </div>
         </div>
       </section>
     );
