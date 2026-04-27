@@ -17,7 +17,7 @@ import { auth, db } from "./firebase";
 import { EQUIPOS, createInitialStickerState, getAllCollectionStickers, getTeamStickers } from "./data";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
-const TOTAL_LAMINAS = 980;
+const TOTAL_LAMINAS = EQUIPOS.length * 20; // 48 equipos x 20 figuras = 960
 
 export function useAlbumApp() {
   const [currentTab, setCurrentTab] = useState("inicio");

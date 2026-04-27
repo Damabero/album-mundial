@@ -51,8 +51,9 @@ export const EQUIPOS = [
 
 export function createInitialStickerState() {
   const initialState = {};
+  const totalStickers = EQUIPOS.length * 20; // 48 equipos x 20 figuras = 960
 
-  for (let index = 1; index <= 980; index += 1) {
+  for (let index = 1; index <= totalStickers; index += 1) {
     initialState[index] = 0;
   }
 
