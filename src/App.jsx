@@ -271,7 +271,7 @@ function App() {
               {app.isGlobalSearch
                 ? "Busqueda global"
                 : app.currentTeam
-                  ? app.currentTeam.nombre
+                  ? `${app.currentTeam.bandera} ${app.currentTeam.nombre}`
                   : "Album"}
             </h2>
           </div>
@@ -299,7 +299,7 @@ function App() {
           >
             {EQUIPOS.map((team, index) => (
               <option key={team.id} value={index}>
-                {team.grupo}. {team.nombre}
+                {team.bandera} {team.grupo}. {team.nombre}
               </option>
             ))}
           </select>
