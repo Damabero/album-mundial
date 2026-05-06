@@ -587,34 +587,180 @@ button {
   margin-bottom: 0;
 }
 
-.team-strip {
-  margin-bottom: 18px;
+/* Team Navigation */
+.team-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--line);
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.team-select {
+  flex: 1;
+  max-width: 280px;
+  padding: 12px 40px 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 500;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a6258' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+/* Search Filters */
+.search-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 10px;
   align-items: center;
 }
 
-.team-strip > button {
-  flex: 0 0 auto;
-  min-width: 100px;
-  max-width: 140px;
+.filter-controls select {
+  padding: 12px 36px 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  font-size: 0.9rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a6258' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
 }
 
-.team-strip > select {
-  flex: 1 1 200px;
-  max-width: 320px;
+.clear-filters-button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--muted);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.filters {
-  margin-bottom: 24px;
+.clear-filters-button:hover {
+  background: var(--line);
 }
 
-.filters > input {
-  flex: 2 1 280px;
-  max-width: 100%;
+/* Team Actions */
+.team-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--line);
 }
 
-.filters > select {
-  flex: 0 1 160px;
-  max-width: 180px;
+.team-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actions-label {
+  font-size: 0.85rem;
+  color: var(--muted-ink);
+  font-weight: 500;
+}
+
+.action-button {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.action-button.danger:hover {
+  background: #fecaca;
+}
+
+.action-button.success {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.action-button.success:hover {
+  background: #a7f3d0;
 }
 
 .sticker-grid,
@@ -1206,17 +1352,48 @@ button {
     max-width: 85%;
   }
 
-  /* Album and filters tablet optimization */
-  .toolbar {
+  /* Team Navigation tablet */
+  .team-navigation {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .nav-button {
+    padding: 10px 14px;
+  }
+
+  .team-select {
+    flex: 1 1 100%;
+    max-width: 100%;
+    order: -1;
+  }
+
+  /* Search filters tablet */
+  .search-filters {
+    flex-direction: column;
     gap: 10px;
   }
 
-  .filters {
-    gap: 10px;
+  .filter-controls {
+    width: 100%;
+    justify-content: space-between;
   }
 
-  .team-strip {
-    gap: 10px;
+  .filter-controls select {
+    flex: 1;
+  }
+
+  /* Team actions tablet */
+  .team-actions {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .team-actions-group {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .sticker-grid {
@@ -1359,24 +1536,86 @@ button {
     line-height: 1.5;
   }
 
+  /* Team Navigation mobile */
+  .team-navigation {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 14px;
+  }
+
+  .nav-button {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  .nav-text {
+    display: none;
+  }
+
+  .nav-icon {
+    font-size: 1.2rem;
+  }
+
+  .team-select {
+    padding: 10px 36px 10px 12px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  /* Search filters mobile */
+  .search-input-wrapper input {
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .filter-controls select {
+    padding: 10px 32px 10px 12px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .clear-filters-button {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* Team actions mobile */
+  .team-actions {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  .team-actions-group {
+    gap: 8px;
+  }
+
+  .actions-label {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .action-button {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
   /* Form elements mobile optimization */
   .form-grid {
     gap: 12px;
   }
 
   .form-grid input,
-  .form-grid select,
-  .filters input,
-  .filters select,
-  .team-strip select {
+  .form-grid select {
     padding: 12px 14px;
     font-size: 16px;
     border-radius: 12px;
   }
 
-  .form-grid select,
-  .filters select,
-  .team-strip select {
+  .form-grid select {
     padding-right: 36px;
     background-position: right 12px center;
   }
