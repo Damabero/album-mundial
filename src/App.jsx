@@ -1,6 +1,54 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { EQUIPOS } from "./data";
 import { useAlbumApp } from "./useAlbumApp";
+
+function TeamSelector({ teams, currentIndex, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const currentTeam = teams[currentIndex];
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="team-selector" ref={dropdownRef}>
+      <button 
+        className="team-selector-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+      >
+        <span className="team-flag">{currentTeam.bandera}</span>
+        <span className="team-name">{currentTeam.grupo}. {currentTeam.nombre}</span>
+        <span className="team-arrow">{isOpen ? "▲" : "▼"}</span>
+      </button>
+      
+      {isOpen && (
+        <div className="team-selector-dropdown">
+          {teams.map((team, index) => (
+            <button
+              key={team.id}
+              className={`team-option ${index === currentIndex ? "active" : ""}`}
+              onClick={() => {
+                onChange(index);
+                setIsOpen(false);
+              }}
+            >
+              <span className="team-flag">{team.bandera}</span>
+              <span className="team-option-text">{team.grupo}. {team.nombre}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function App() {
   const app = useAlbumApp();
@@ -292,17 +340,11 @@ function App() {
             <span className="nav-text">Anterior</span>
           </button>
           
-          <select
-            className="team-select"
-            value={app.currentTeamIndex}
-            onChange={(event) => app.setCurrentTeamIndex(Number(event.target.value))}
-          >
-            {EQUIPOS.map((team, index) => (
-              <option key={team.id} value={index}>
-                {team.bandera} {team.grupo}. {team.nombre}
-              </option>
-            ))}
-          </select>
+          <TeamSelector 
+            teams={EQUIPOS}
+            currentIndex={app.currentTeamIndex}
+            onChange={app.setCurrentTeamIndex}
+          />
           
           <button
             className="nav-button"
