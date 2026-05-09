@@ -36,6 +36,15 @@ export function useAlbumApp() {
   const [chatName, setChatName] = useState("");
   const [messageText, setMessageText] = useState("");
   const [loadingChats, setLoadingChats] = useState(false);
+  const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    usuario: "",
+    pais: "",
+    departamento: "",
+    ciudad: ""
+  });
+  const [profileStates, setProfileStates] = useState([]);
+  const [profileCities, setProfileCities] = useState([]);
   const [registerForm, setRegisterForm] = useState({
     usuario: "",
     email: "",
@@ -184,6 +193,22 @@ export function useAlbumApp() {
         .eq("id", uid)
         .single();
 
+      // Check if user needs to complete their profile (no country/city set)
+      const needsCompletion = !userData || !userData.pais || !userData.ciudad;
+      
+      if (needsCompletion) {
+        setNeedsProfileCompletion(true);
+        setProfileForm({
+          usuario: userData?.usuario || userData?.nombre || email?.split("@")[0] || "",
+          pais: "",
+          departamento: "",
+          ciudad: ""
+        });
+        await loadCountries();
+        setAuthUser({ id: uid, email });
+        return;
+      }
+
       const userName = userData?.usuario || userData?.nombre || email;
       
       // Load sticker state
@@ -195,6 +220,7 @@ export function useAlbumApp() {
 
       const nextStickerState = stickerData?.stickers || createInitialStickerState();
 
+      setNeedsProfileCompletion(false);
       setDisplayName(userName);
       setAccountForm({
         usuario: userData?.usuario || userData?.nombre || "",
@@ -208,7 +234,15 @@ export function useAlbumApp() {
       await loadHomeStats();
     } catch (error) {
       console.error(error);
-      alert("No se pudo cargar la sesion del usuario.");
+      // If user doesn't exist yet, they need to complete profile
+      setNeedsProfileCompletion(true);
+      setProfileForm({
+        usuario: email?.split("@")[0] || "",
+        pais: "",
+        departamento: "",
+        ciudad: ""
+      });
+      await loadCountries();
     }
   }
 
@@ -584,6 +618,86 @@ export function useAlbumApp() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    setNeedsProfileCompletion(false);
+  }
+
+  // Profile completion handlers (for Google login users)
+  async function handleProfileCountryChange(country) {
+    const states = await fetchStates(country);
+    setProfileStates(states);
+    setProfileCities([]);
+    setProfileForm(prev => ({ ...prev, pais: country, departamento: "", ciudad: "" }));
+  }
+
+  async function handleProfileStateChange(stateName) {
+    const cities = await fetchCities(profileForm.pais, stateName);
+    setProfileCities(cities);
+    setProfileForm(prev => ({ ...prev, departamento: stateName, ciudad: "" }));
+  }
+
+  async function handleCompleteProfile(event) {
+    event.preventDefault();
+    if (!authUser) return;
+    
+    const { usuario, pais, departamento, ciudad } = profileForm;
+    if (!usuario || !pais || !departamento || !ciudad) {
+      return alert("Completa todos los campos para continuar.");
+    }
+
+    try {
+      // Check if user profile exists
+      const { data: existingUser } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("id", authUser.id)
+        .single();
+
+      if (existingUser) {
+        // Update existing profile
+        await supabase
+          .from("usuarios")
+          .update({ usuario, nombre: usuario, pais, departamento, ciudad })
+          .eq("id", authUser.id);
+      } else {
+        // Create new profile
+        await supabase
+          .from("usuarios")
+          .insert({
+            id: authUser.id,
+            usuario,
+            email: authUser.email,
+            nombre: usuario,
+            pais,
+            departamento,
+            ciudad
+          });
+
+        // Create initial sticker state
+        await supabase
+          .from("sticker_states")
+          .insert({
+            user_id: authUser.id,
+            stickers: createInitialStickerState()
+          });
+      }
+
+      setNeedsProfileCompletion(false);
+      setDisplayName(usuario);
+      setAccountForm({
+        usuario,
+        email: authUser.email,
+        pais,
+        departamento,
+        ciudad
+      });
+      setStickerState(createInitialStickerState());
+      setProgressReady(true);
+      setCurrentTab("inicio");
+      await loadHomeStats();
+    } catch (error) {
+      console.error(error);
+      alert(`Error al guardar el perfil: ${error.message}`);
+    }
   }
 
   async function handleSaveAccount(event) {
@@ -784,6 +898,11 @@ export function useAlbumApp() {
     messageText,
     setMessageText,
     loadingChats,
+    needsProfileCompletion,
+    profileForm,
+    setProfileForm,
+    profileStates,
+    profileCities,
     registerForm,
     setRegisterForm,
     loginForm,
@@ -798,6 +917,9 @@ export function useAlbumApp() {
     handleLogin,
     handleGoogleLogin,
     handleLogout,
+    handleCompleteProfile,
+    handleProfileCountryChange,
+    handleProfileStateChange,
     handleSaveAccount,
     handleRegisterCountryChange,
     handleRegisterStateChange,

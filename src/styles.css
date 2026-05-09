@@ -494,7 +494,14 @@ button {
 
 .auth-card h2 {
   font-size: clamp(2.4rem, 5vw, 3.4rem);
-  margin-bottom: 22px;
+  margin-bottom: 12px;
+}
+
+.auth-subtitle {
+  color: var(--muted-ink);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+  line-height: 1.5;
 }
 
 .auth-divider {
