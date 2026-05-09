@@ -617,8 +617,20 @@ export function useAlbumApp() {
   }
 
   async function handleLogout() {
-    await supabase.auth.signOut();
-    setNeedsProfileCompletion(false);
+    try {
+      await supabase.auth.signOut();
+      // Reset all user-related state
+      setAuthUser(null);
+      setDisplayName("");
+      setNeedsProfileCompletion(false);
+      setProgressReady(false);
+      setStickerState(createInitialStickerState());
+      setCurrentTab("inicio");
+      setAccountForm({ usuario: "", email: "", pais: "", departamento: "", ciudad: "" });
+    } catch (error) {
+      console.error("[v0] Error logging out:", error);
+      alert("Error al cerrar sesion. Intenta de nuevo.");
+    }
   }
 
   // Profile completion handlers (for Google login users)
