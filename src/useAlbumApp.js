@@ -1,20 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc
-} from "firebase/firestore";
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut
-} from "firebase/auth";
-import { auth, db } from "./firebase";
 import { EQUIPOS, createInitialStickerState, getAllCollectionStickers, getTeamStickers, getTotalStickers } from "./data";
+import { supabase } from "./supabase";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 const TOTAL_LAMINAS = getTotalStickers();
@@ -131,9 +117,10 @@ export function useAlbumApp() {
       });
   }, [currentTeam, currentTeamIndex, filterStatus, filterText, stickerState]);
 
+  // Auth state listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!session?.user) {
         setAuthUser(null);
         setDisplayName("Usuario");
         setCurrentTab("inicio");
@@ -147,12 +134,22 @@ export function useAlbumApp() {
         return;
       }
 
-      setAuthUser(user);
+      setAuthUser(session.user);
       setCurrentTab("inicio");
-      await hydrateUserSession(user.uid, user.email);
+      await hydrateUserSession(session.user.id, session.user.email);
     });
 
-    return () => unsubscribe();
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setAuthUser(session.user);
+        hydrateUserSession(session.user.id, session.user.email);
+      } else {
+        loadCountries();
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -180,26 +177,31 @@ export function useAlbumApp() {
 
   async function hydrateUserSession(uid, email) {
     try {
-      const userDoc = await getDoc(doc(db, "usuarios", uid));
-      const userData = userDoc.exists() ? userDoc.data() : {};
-      const userName = userData.usuario || userData.nombre || email;
-      const nextStickerState = createInitialStickerState();
+      // Load user profile
+      const { data: userData, error } = await supabase
+        .from("usuarios")
+        .select("*")
+        .eq("id", uid)
+        .single();
 
-      (userData.obtenidas || []).forEach((numero) => {
-        nextStickerState[Number(numero)] = 1;
-      });
+      const userName = userData?.usuario || userData?.nombre || email;
+      
+      // Load sticker state
+      const { data: stickerData } = await supabase
+        .from("sticker_states")
+        .select("stickers")
+        .eq("user_id", uid)
+        .single();
 
-      (userData.duplicadas || []).forEach((numero) => {
-        nextStickerState[Number(numero)] = 2;
-      });
+      const nextStickerState = stickerData?.stickers || createInitialStickerState();
 
       setDisplayName(userName);
       setAccountForm({
-        usuario: userData.usuario || userData.nombre || "",
+        usuario: userData?.usuario || userData?.nombre || "",
         email: email || "",
-        pais: userData.pais || "",
-        departamento: userData.departamento || "",
-        ciudad: userData.ciudad || ""
+        pais: userData?.pais || "",
+        departamento: userData?.departamento || "",
+        ciudad: userData?.ciudad || ""
       });
       setStickerState(nextStickerState);
       setProgressReady(true);
@@ -219,7 +221,29 @@ export function useAlbumApp() {
       if (result.success) setCountries(result.data);
     } catch (error) {
       console.error(error);
-      alert("Error al conectar con el servidor de paises.");
+      // Fallback countries list
+      setCountries([
+        { name: "Mexico" },
+        { name: "Colombia" },
+        { name: "Argentina" },
+        { name: "Peru" },
+        { name: "Chile" },
+        { name: "Ecuador" },
+        { name: "Venezuela" },
+        { name: "Guatemala" },
+        { name: "Cuba" },
+        { name: "Bolivia" },
+        { name: "Honduras" },
+        { name: "Paraguay" },
+        { name: "El Salvador" },
+        { name: "Nicaragua" },
+        { name: "Costa Rica" },
+        { name: "Panama" },
+        { name: "Uruguay" },
+        { name: "Puerto Rico" },
+        { name: "Spain" },
+        { name: "United States" }
+      ]);
     }
   }
 
@@ -262,10 +286,14 @@ export function useAlbumApp() {
     if (!authUser) return;
 
     try {
-      const userDoc = await getDoc(doc(db, "usuarios", authUser.uid));
-      if (!userDoc.exists()) return;
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("*")
+        .eq("id", authUser.id)
+        .single();
 
-      const data = userDoc.data();
+      if (!data) return;
+
       const states = await fetchStates(data.pais || "");
       const cities = await fetchCities(data.pais || "", data.departamento || "");
 
@@ -285,26 +313,16 @@ export function useAlbumApp() {
   }
 
   async function saveProgress(nextState) {
-    if (!auth.currentUser) return;
+    if (!authUser) return;
 
     try {
-      const userRef = doc(db, "usuarios", auth.currentUser.uid);
-      const snapshot = await getDoc(userRef);
-      const baseData = snapshot.exists() ? snapshot.data() : {};
-      const duplicadas = [];
-      const necesita = [];
-      const obtenidas = [];
-
-      for (let index = 1; index <= TOTAL_LAMINAS; index += 1) {
-        const value = nextState[index];
-        if (value === 0) necesita.push(index.toString());
-        else {
-          obtenidas.push(index.toString());
-          if (value > 1) duplicadas.push(index.toString());
-        }
-      }
-
-      await setDoc(userRef, { ...baseData, duplicadas, necesita, obtenidas });
+      await supabase
+        .from("sticker_states")
+        .upsert({
+          user_id: authUser.id,
+          stickers: nextState,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
     } catch (error) {
       console.error(error);
     }
@@ -312,18 +330,22 @@ export function useAlbumApp() {
 
   async function loadHomeStats() {
     try {
-      const usuariosSnap = await getDocs(collection(db, "usuarios"));
-      const conversacionesSnap = await getDocs(collection(db, "conversaciones"));
-      const countriesSet = new Set();
+      const { data: usuarios, count: usuariosCount } = await supabase
+        .from("usuarios")
+        .select("pais", { count: "exact" });
 
-      usuariosSnap.forEach((userDoc) => {
-        const data = userDoc.data();
-        if (data.pais) countriesSet.add(data.pais);
+      const { count: conversacionesCount } = await supabase
+        .from("conversaciones")
+        .select("*", { count: "exact", head: true });
+
+      const countriesSet = new Set();
+      (usuarios || []).forEach((user) => {
+        if (user.pais) countriesSet.add(user.pais);
       });
 
       setHomeStats({
-        usuarios: usuariosSnap.size,
-        intercambios: conversacionesSnap.size,
+        usuarios: usuariosCount || 0,
+        intercambios: conversacionesCount || 0,
         paises: countriesSet.size
       });
     } catch (error) {
@@ -335,29 +357,70 @@ export function useAlbumApp() {
     if (!authUser) return;
 
     try {
-      const myDoc = await getDoc(doc(db, "usuarios", authUser.uid));
-      if (!myDoc.exists()) return setMatches([]);
+      // Get my profile
+      const { data: myProfile } = await supabase
+        .from("usuarios")
+        .select("ciudad")
+        .eq("id", authUser.id)
+        .single();
 
-      const me = myDoc.data();
-      const usersSnapshot = await getDocs(collection(db, "usuarios"));
+      if (!myProfile) return setMatches([]);
+
+      // Get my stickers
+      const { data: myStickerData } = await supabase
+        .from("sticker_states")
+        .select("stickers")
+        .eq("user_id", authUser.id)
+        .single();
+
+      const myStickers = myStickerData?.stickers || {};
+
+      // Calculate my needs and duplicates
+      const myNeeds = [];
+      const myDuplicates = [];
+      for (let i = 1; i <= TOTAL_LAMINAS; i++) {
+        const val = myStickers[i] || 0;
+        if (val === 0) myNeeds.push(i);
+        if (val > 1) myDuplicates.push(i);
+      }
+
+      // Get other users in same city
+      const { data: otherUsers } = await supabase
+        .from("usuarios")
+        .select("id, usuario, nombre, ciudad")
+        .eq("ciudad", myProfile.ciudad)
+        .neq("id", authUser.id);
+
+      if (!otherUsers || otherUsers.length === 0) return setMatches([]);
+
+      // Get their stickers
+      const { data: otherStickers } = await supabase
+        .from("sticker_states")
+        .select("user_id, stickers")
+        .in("user_id", otherUsers.map(u => u.id));
+
+      const stickersMap = {};
+      (otherStickers || []).forEach(s => {
+        stickersMap[s.user_id] = s.stickers || {};
+      });
+
       const nextMatches = [];
+      otherUsers.forEach((other) => {
+        const theirStickers = stickersMap[other.id] || {};
+        
+        // What they can give me (my needs that they have duplicates of)
+        const theyGiveMe = myNeeds.filter(n => (theirStickers[n] || 0) > 1);
+        
+        // What I can give them (my duplicates that they need)
+        const iGiveThem = myDuplicates.filter(n => (theirStickers[n] || 0) === 0);
 
-      usersSnapshot.forEach((userDoc) => {
-        if (userDoc.id === authUser.uid) return;
-
-        const other = userDoc.data();
-        if (other.ciudad !== me.ciudad) return;
-
-        const yoDoy = (me.duplicadas || []).filter((sticker) => (other.necesita || []).includes(sticker));
-        const otroDa = (other.duplicadas || []).filter((sticker) => (me.necesita || []).includes(sticker));
-
-        if (yoDoy.length > 0 && otroDa.length > 0) {
+        if (theyGiveMe.length > 0 && iGiveThem.length > 0) {
           nextMatches.push({
-            id: userDoc.id,
+            id: other.id,
             usuario: other.usuario || other.nombre || "Usuario",
             ciudad: other.ciudad,
-            yoDoy,
-            otroDa
+            yoDoy: iGiveThem,
+            otroDa: theyGiveMe
           });
         }
       });
@@ -374,23 +437,23 @@ export function useAlbumApp() {
 
     setLoadingChats(true);
     try {
-      const snapshot = await getDocs(collection(db, "conversaciones"));
-      const nextConversations = [];
+      const { data, error } = await supabase
+        .from("conversaciones")
+        .select("*")
+        .contains("usuarios", [authUser.id])
+        .order("ultima_actividad", { ascending: false });
 
-      snapshot.forEach((conversationDoc) => {
-        const data = conversationDoc.data();
-        if (data.usuarios?.includes(authUser.uid)) {
-          const otherIndex = data.usuarios[0] === authUser.uid ? 1 : 0;
-          nextConversations.push({
-            id: conversationDoc.id,
-            uid: data.usuarios[otherIndex],
-            nombre: data.nombres?.[otherIndex] || "Usuario",
-            ultimaActividad: data.ultimaActividad || 0
-          });
-        }
+      const nextConversations = [];
+      (data || []).forEach((conv) => {
+        const otherIndex = conv.usuarios[0] === authUser.id ? 1 : 0;
+        nextConversations.push({
+          id: conv.id,
+          uid: conv.usuarios[otherIndex],
+          nombre: conv.nombres?.[otherIndex] || "Usuario",
+          ultimaActividad: conv.ultima_actividad || 0
+        });
       });
 
-      nextConversations.sort((a, b) => b.ultimaActividad - a.ultimaActividad);
       setConversations(nextConversations);
     } catch (error) {
       console.error(error);
@@ -403,19 +466,19 @@ export function useAlbumApp() {
     if (!authUser || !targetUid) return;
 
     try {
-      const snapshot = await getDocs(collection(db, "chats"));
-      const nextMessages = [];
+      const { data, error } = await supabase
+        .from("chats")
+        .select("*")
+        .or(`and(from_user.eq.${authUser.id},to_user.eq.${targetUid}),and(from_user.eq.${targetUid},to_user.eq.${authUser.id})`)
+        .order("fecha", { ascending: true });
 
-      snapshot.forEach((messageDoc) => {
-        const message = messageDoc.data();
-        const belongsToChat =
-          (message.from === authUser.uid && message.to === targetUid) ||
-          (message.from === targetUid && message.to === authUser.uid);
+      const nextMessages = (data || []).map(msg => ({
+        from: msg.from_user,
+        to: msg.to_user,
+        texto: msg.texto,
+        fecha: msg.fecha
+      }));
 
-        if (belongsToChat) nextMessages.push(message);
-      });
-
-      nextMessages.sort((a, b) => a.fecha - b.fecha);
       setMessages(nextMessages);
     } catch (error) {
       console.error(error);
@@ -430,30 +493,53 @@ export function useAlbumApp() {
     }
 
     try {
-      const credentials = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "usuarios", credentials.user.uid), {
-        usuario,
+      const { data, error } = await supabase.auth.signUp({
         email,
-        nombre: usuario,
-        pais,
-        departamento,
-        ciudad,
-        duplicadas: [],
-        necesita: Array.from({ length: TOTAL_LAMINAS }, (_, index) => `${index + 1}`),
-        obtenidas: []
+        password,
+        options: {
+          data: {
+            usuario,
+            nombre: usuario
+          }
+        }
       });
 
-      setRegisterForm({
-        usuario: "",
-        email: "",
-        password: "",
-        pais: "",
-        departamento: "",
-        ciudad: ""
-      });
-      setRegisterStates([]);
-      setRegisterCities([]);
-      alert("Registro exitoso.");
+      if (error) throw error;
+
+      if (data.user) {
+        // Create user profile
+        await supabase
+          .from("usuarios")
+          .insert({
+            id: data.user.id,
+            usuario,
+            email,
+            nombre: usuario,
+            pais,
+            departamento,
+            ciudad
+          });
+
+        // Create initial sticker state
+        await supabase
+          .from("sticker_states")
+          .insert({
+            user_id: data.user.id,
+            stickers: createInitialStickerState()
+          });
+
+        setRegisterForm({
+          usuario: "",
+          email: "",
+          password: "",
+          pais: "",
+          departamento: "",
+          ciudad: ""
+        });
+        setRegisterStates([]);
+        setRegisterCities([]);
+        alert("Registro exitoso. Por favor revisa tu email para confirmar tu cuenta.");
+      }
     } catch (error) {
       console.error(error);
       alert(`Error en el registro: ${error.message}`);
@@ -467,7 +553,12 @@ export function useAlbumApp() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginForm.email,
+        password: loginForm.password
+      });
+
+      if (error) throw error;
       setLoginForm({ email: "", password: "" });
     } catch (error) {
       console.error(error);
@@ -475,8 +566,24 @@ export function useAlbumApp() {
     }
   }
 
+  async function handleGoogleLogin() {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error(error);
+      alert(`Error al iniciar sesion con Google: ${error.message}`);
+    }
+  }
+
   async function handleLogout() {
-    await signOut(auth);
+    await supabase.auth.signOut();
   }
 
   async function handleSaveAccount(event) {
@@ -488,7 +595,12 @@ export function useAlbumApp() {
     }
 
     try {
-      await setDoc(doc(db, "usuarios", authUser.uid), { pais, departamento, ciudad }, { merge: true });
+      const { error } = await supabase
+        .from("usuarios")
+        .update({ pais, departamento, ciudad })
+        .eq("id", authUser.id);
+
+      if (error) throw error;
       alert("Cambios guardados.");
       setCurrentTab("album");
     } catch (error) {
@@ -571,22 +683,38 @@ export function useAlbumApp() {
     if (!authUser) return;
 
     try {
-      const myUserDoc = await getDoc(doc(db, "usuarios", authUser.uid));
-      const myName = myUserDoc.exists()
-        ? myUserDoc.data().usuario || myUserDoc.data().nombre || authUser.email
-        : authUser.email;
-      const conversationId = [authUser.uid, uid].sort().join("_");
+      const { data: myProfile } = await supabase
+        .from("usuarios")
+        .select("usuario, nombre")
+        .eq("id", authUser.id)
+        .single();
 
-      await setDoc(
-        doc(db, "conversaciones", conversationId),
-        {
-          usuarios: [authUser.uid, uid],
-          nombres: [myName, nombre],
-          ultimaActividad: Date.now(),
-          creadaEn: Date.now()
-        },
-        { merge: true }
-      );
+      const myName = myProfile?.usuario || myProfile?.nombre || authUser.email;
+      const conversationId = [authUser.id, uid].sort().join("_");
+
+      // Check if conversation exists
+      const { data: existing } = await supabase
+        .from("conversaciones")
+        .select("id")
+        .eq("id", conversationId)
+        .single();
+
+      if (!existing) {
+        await supabase
+          .from("conversaciones")
+          .insert({
+            id: conversationId,
+            usuarios: [authUser.id, uid],
+            nombres: [myName, nombre],
+            ultima_actividad: Date.now(),
+            creada_en: Date.now()
+          });
+      } else {
+        await supabase
+          .from("conversaciones")
+          .update({ ultima_actividad: Date.now() })
+          .eq("id", conversationId);
+      }
 
       setChatTarget(uid);
       setChatName(nombre);
@@ -604,15 +732,20 @@ export function useAlbumApp() {
     if (!authUser || !chatTarget || !messageText.trim()) return;
 
     try {
-      await addDoc(collection(db, "chats"), {
-        from: authUser.uid,
-        to: chatTarget,
-        texto: messageText.trim(),
-        fecha: Date.now()
-      });
+      await supabase
+        .from("chats")
+        .insert({
+          from_user: authUser.id,
+          to_user: chatTarget,
+          texto: messageText.trim(),
+          fecha: Date.now()
+        });
 
-      const conversationId = [authUser.uid, chatTarget].sort().join("_");
-      await setDoc(doc(db, "conversaciones", conversationId), { ultimaActividad: Date.now() }, { merge: true });
+      const conversationId = [authUser.id, chatTarget].sort().join("_");
+      await supabase
+        .from("conversaciones")
+        .update({ ultima_actividad: Date.now() })
+        .eq("id", conversationId);
 
       setMessageText("");
       await loadMessages(chatTarget);
@@ -663,6 +796,7 @@ export function useAlbumApp() {
     filteredStickers,
     handleRegister,
     handleLogin,
+    handleGoogleLogin,
     handleLogout,
     handleSaveAccount,
     handleRegisterCountryChange,
@@ -674,6 +808,9 @@ export function useAlbumApp() {
     fillAll,
     clearCurrentTeam,
     fillCurrentTeam,
+    loadMatches,
+    loadConversations,
+    loadMessages,
     openChatFromMatch,
     sendMessage
   };
