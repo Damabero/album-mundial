@@ -792,12 +792,10 @@ function App() {
                     </button>
                     <button
                       className="user-menu-item user-menu-danger"
-                      onClick={async () => {
-                        console.log("[v0] Logout button clicked");
+                      onClick={() => {
                         setUserMenuOpen(false);
                         setMobileNavOpen(false);
-                        await app.handleLogout();
-                        console.log("[v0] Logout complete");
+                        app.handleLogout();
                       }}
                     >
                       <span className="user-menu-icon">↩</span>

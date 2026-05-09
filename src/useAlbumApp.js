@@ -617,35 +617,18 @@ export function useAlbumApp() {
   }
 
   async function handleLogout() {
-    console.log("[v0] handleLogout called");
-    console.log("[v0] supabase client:", supabase);
-    if (!supabase) {
-      console.log("[v0] Supabase client is null, resetting state manually");
-      setAuthUser(null);
-      setDisplayName("");
-      setNeedsProfileCompletion(false);
-      setProgressReady(false);
-      setStickerState(createInitialStickerState());
-      setCurrentTab("inicio");
-      setAccountForm({ usuario: "", email: "", pais: "", departamento: "", ciudad: "" });
-      return;
-    }
-    try {
-      console.log("[v0] Calling supabase.auth.signOut()");
-      const { error } = await supabase.auth.signOut();
-      console.log("[v0] signOut result, error:", error);
-      // Reset all user-related state
-      setAuthUser(null);
-      setDisplayName("");
-      setNeedsProfileCompletion(false);
-      setProgressReady(false);
-      setStickerState(createInitialStickerState());
-      setCurrentTab("inicio");
-      setAccountForm({ usuario: "", email: "", pais: "", departamento: "", ciudad: "" });
-      console.log("[v0] State reset complete");
-    } catch (error) {
-      console.error("[v0] Error logging out:", error);
-      alert("Error al cerrar sesion. Intenta de nuevo.");
+    // Reset state immediately - don't wait for Supabase
+    setAuthUser(null);
+    setDisplayName("");
+    setNeedsProfileCompletion(false);
+    setProgressReady(false);
+    setStickerState(createInitialStickerState());
+    setCurrentTab("inicio");
+    setAccountForm({ usuario: "", email: "", pais: "", departamento: "", ciudad: "" });
+    
+    // Try to sign out from Supabase in background
+    if (supabase) {
+      supabase.auth.signOut().catch(() => {});
     }
   }
 
